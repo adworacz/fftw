@@ -1,0 +1,13 @@
+.{
+    .name = .fftw,
+    .version = "0.0.1",
+    .dependencies = .{
+        .fftw = .{
+            .url = "https://www.fftw.org/fftw-3.3.11.tar.gz",
+            .hash = "N-V-__8AAJCaEgGHVjSvtXEujGF0v3EBM4ymRUQt_zk_DoWo",
+        },
+    },
+    .minimum_zig_version = "0.15.2",
+    .paths = .{""},
+    .fingerprint = 0xf661983c23753512,
+}
