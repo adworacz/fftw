@@ -74,8 +74,8 @@ pub fn build(b: *std.Build) void {
         .HAVE_DECL_COSL = true,
         .HAVE_DECL_COSQ = false,
         .HAVE_DECL_DRAND48 = true,
-        .HAVE_DECL_MEMALIGN = true,
-        .HAVE_DECL_POSIX_MEMALIGN = true,
+        .HAVE_DECL_MEMALIGN = !is_windows,
+        .HAVE_DECL_POSIX_MEMALIGN = !is_windows,
         .HAVE_DECL_SINL = true,
         .HAVE_DECL_SINQ = false,
         .HAVE_DECL_SRAND48 = true,
@@ -92,7 +92,7 @@ pub fn build(b: *std.Build) void {
         .HAVE_LIMITS_H = true,
         .HAVE_LONG_DOUBLE = true,
         .HAVE_MALLOC_H = true,
-        .HAVE_MEMALIGN = true,
+        .HAVE_MEMALIGN = !is_windows,
         .HAVE_MEMMOVE = true,
         .HAVE_MEMSET = true,
         .HAVE_POSIX_MEMALIGN = true,
@@ -115,9 +115,11 @@ pub fn build(b: *std.Build) void {
         .HAVE_UNISTD_H = true,
         .HAVE_VPRINTF = true,
 
-        // TODO: Base this on arch (use target.ctypebytsize)
         // Sizes
         .SIZEOF_DOUBLE = target.result.cTypeByteSize(.double),
+        // Seems to be the size of the R2R calculation flag enum
+        // https://github.com/FFTW/fftw3/blob/4fca9817e68f77c118e4704562d63e45c02d38bf/configure.ac#L597-L601
+        // Not sure how to calculate this dynamically, so hard coding for now.
         .SIZEOF_FFTW_R2R_KIND = 4,
         .SIZEOF_FLOAT = target.result.cTypeByteSize(.float),
         .SIZEOF_INT = target.result.cTypeByteSize(.int),
