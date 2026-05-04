@@ -178,6 +178,7 @@ pub fn build(b: *std.Build) void {
         .HAVE_MIPS_ZBUS_TIMER = null,
         .HAVE_NEON = if (use_neon) true else null,
         .HAVE_SVE = if (use_sve) true else null,
+        .HAVE_VSX = null,
 
         .HAVE_BSDGETTIMEOFDAY = null,
         .HAVE_GETHRTIME = null,
@@ -191,7 +192,6 @@ pub fn build(b: *std.Build) void {
         .HAVE_SYSCTL = null,
         .HAVE_TANL = null,
         .HAVE_TIME_BASE_TO_TIME = null,
-        .HAVE_VSX = null,
         .HAVE__MM_FREE = null,
         .HAVE__MM_MALLOC = null,
         .HAVE__RTC = null,
