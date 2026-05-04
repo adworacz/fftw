@@ -9,6 +9,13 @@ pub const flags = &.{
     "-fstrict-aliasing",
 };
 
+const Precision = enum {
+    single,
+    double,
+    long_double,
+    quad,
+};
+
 pub fn build(b: *std.Build) void {
     const upstream = b.dependency("fftw", .{});
     const target = b.standardTargetOptions(.{});
@@ -29,6 +36,8 @@ pub fn build(b: *std.Build) void {
         std.Target.aarch64.featureSetHas(target.result.cpu.features, .neon);
     const use_sve = b.option(bool, "enable-sve", "Enable SVE optimizations (default CPU target)") orelse
         std.Target.aarch64.featureSetHas(target.result.cpu.features, .sve);
+    const precision = b.option(Precision, "precision", "Which precision to compile for (default single)") orelse .single;
+    const use_threads = b.option(bool, "threads", "Enable FFTW SMP threads library (default false)") orelse false;
 
     const is_windows = target.result.os.tag == .windows;
 
@@ -97,7 +106,7 @@ pub fn build(b: *std.Build) void {
         .HAVE_SYS_STAT_H = 1,
         .HAVE_SYS_TIME_H = 1,
         .HAVE_SYS_TYPES_H = 1,
-        .HAVE_THREADS = 1,
+        .HAVE_THREADS = use_threads,
         .HAVE_UINTPTR_T = 1,
         .HAVE_UNISTD_H = 1,
         .HAVE_VPRINTF = 1,
@@ -119,7 +128,7 @@ pub fn build(b: *std.Build) void {
         .SIZEOF_VOID_P = null,
 
         .TIME_WITH_SYS_TIME = 1,
-        .USING_POSIX_THREADS = 1,
+        .USING_POSIX_THREADS = if (!is_windows and use_threads) true else null,
 
         .ARCH_PREFERS_FMA = null,
         .BENCHFFT_LDOUBLE = null,
@@ -136,10 +145,9 @@ pub fn build(b: *std.Build) void {
         .FFTW_CC = "zig cc",
         .FFTW_DEBUG = null,
 
-        //TODO: Set these based on single/double/quad etc options
-        .FFTW_SINGLE = true,
-        .FFTW_LDOUBLE = null,
-        .FFTW_QUAD = null,
+        .FFTW_SINGLE = if (precision == .single) true else null,
+        .FFTW_LDOUBLE = if (precision == .long_double) true else null,
+        .FFTW_QUAD = if (precision == .quad) true else null,
         .FFTW_RANDOM_ESTIMATOR = null,
 
         //TODO: Set these based on arch/cpu
@@ -150,10 +158,10 @@ pub fn build(b: *std.Build) void {
         .HAVE_ARMV8_CNTVCT_EL0 = null,
         .HAVE_ARMV8_PMCCNTR_EL0 = null,
 
-        .HAVE_SSE2 = if(use_sse2) true else null,
-        .HAVE_AVX = if(use_avx) true else null,
-        .HAVE_AVX2 = if(use_avx2) true else null,
-        .HAVE_AVX512 = if(use_avx512) true else null,
+        .HAVE_SSE2 = if (use_sse2) true else null,
+        .HAVE_AVX = if (use_avx) true else null,
+        .HAVE_AVX2 = if (use_avx2) true else null,
+        .HAVE_AVX512 = if (use_avx512) true else null,
         .HAVE_AVX_128_FMA = null,
         .HAVE_GENERIC_SIMD128 = null,
         .HAVE_GENERIC_SIMD256 = null,
@@ -161,8 +169,8 @@ pub fn build(b: *std.Build) void {
         .HAVE_LASX = null,
         .HAVE_LSX = null,
         .HAVE_MIPS_ZBUS_TIMER = null,
-        .HAVE_NEON = if(use_neon) true else null,
-        .HAVE_SVE = if(use_sve) true else null,
+        .HAVE_NEON = if (use_neon) true else null,
+        .HAVE_SVE = if (use_sve) true else null,
 
         .HAVE_BSDGETTIMEOFDAY = null,
         .HAVE_GETHRTIME = null,
@@ -206,15 +214,22 @@ pub fn build(b: *std.Build) void {
 
     mod.addConfigHeader(config);
 
+    const lib_name = switch (precision) {
+        .single => "fftw3f",
+        .double => "fftw3",
+        .long_double => "fftw3l",
+        .quad => "fftw3q",
+    };
+
     //TODO: These might have to be different per single/double/quad/etc
     const lib = b.addLibrary(.{
-        .name = "fftw3",
+        .name = lib_name,
         .linkage = .static,
         .root_module = mod,
     });
 
     const dynlib = b.addLibrary(.{
-        .name = "fftw3",
+        .name = lib_name,
         .linkage = .dynamic,
         .root_module = mod,
     });
@@ -227,7 +242,9 @@ pub fn build(b: *std.Build) void {
     mod.addIncludePath(upstream.path("rdft"));
     mod.addIncludePath(upstream.path("reodft"));
     mod.addIncludePath(upstream.path("simd-support"));
-    mod.addIncludePath(upstream.path("threads"));
+    if (use_threads) {
+        mod.addIncludePath(upstream.path("threads"));
+    }
     mod.addIncludePath(upstream.path("."));
 
     // Add all pertinent files
@@ -287,13 +304,15 @@ pub fn build(b: *std.Build) void {
         .files = &sources.simd_support,
         .flags = flags,
     });
-    mod.addCSourceFiles(.{
-        .root = upstream.path("threads"),
-        .files = &sources.threads,
-        .flags = flags,
-    });
+
+    if (use_threads) {
+        mod.addCSourceFiles(.{
+            .root = upstream.path("threads"),
+            .files = &sources.threads,
+            .flags = flags,
+        });
+    }
 
     b.installArtifact(lib);
     b.installArtifact(dynlib);
 }
-
