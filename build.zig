@@ -23,7 +23,7 @@ pub fn build(b: *std.Build) void {
 
     const is_windows = target.result.os.tag == .windows;
     const is_x86 = target.result.cpu.arch == .x86_64;
-    const is_aarch64 = target.result.cpu.arch == .aarch64; 
+    const is_aarch64 = target.result.cpu.arch == .aarch64;
 
     const strip = b.option(bool, "strip", "Enable debug symbol stripping (default true)") orelse true;
     const pic = b.option(bool, "pic", "Enable PIC (position independent code) (default true)") orelse true;
@@ -43,7 +43,6 @@ pub fn build(b: *std.Build) void {
 
     const precision = b.option(Precision, "precision", "Which precision to compile for (default single)") orelse .single;
     const use_threads = b.option(bool, "threads", "Enable FFTW SMP threads library (default false)") orelse false;
-
 
     const config = b.addConfigHeader(.{
         .include_path = "config.h",
@@ -232,10 +231,10 @@ pub fn build(b: *std.Build) void {
         .root_module = mod,
     });
 
-    // Disable building the dynamic library for now to prevent 
+    // Disable building the dynamic library for now to prevent
     // ambiguity.
     // See: https://github.com/ziglang/zig/issues/20377
-    // Potentially can be solved like curl, which exposes a 
+    // Potentially can be solved like curl, which exposes a
     // "artifact()" function:
     // https://github.com/allyourcodebase/curl/blob/master/build.zig#L946-L959
     //
@@ -272,10 +271,25 @@ pub fn build(b: *std.Build) void {
     });
 
     //TODO: Finish all instruction sets
+    // mod.addCSourceFiles(.{
+    //     .root = upstream.path("dft"),
+    //     .files = &sources.dft.simd.common,
+    //     .flags = flags,
+    // });
+    // mod.addCSourceFiles(.{
+    //     .root = upstream.path("dft"),
+    //     .files = &sources.rdft.simd.common,
+    //     .flags = flags,
+    // });
     if (use_sse2) {
         mod.addCSourceFiles(.{
             .root = upstream.path("dft"),
             .files = &sources.dft.simd.sse2,
+            .flags = flags,
+        });
+        mod.addCSourceFiles(.{
+            .root = upstream.path("rdft"),
+            .files = &sources.rdft.simd.sse2,
             .flags = flags,
         });
     }
@@ -285,6 +299,11 @@ pub fn build(b: *std.Build) void {
             .files = &sources.dft.simd.avx,
             .flags = flags,
         });
+        mod.addCSourceFiles(.{
+            .root = upstream.path("rdft"),
+            .files = &sources.rdft.simd.avx,
+            .flags = flags,
+        });
     }
     if (use_avx2) {
         mod.addCSourceFiles(.{
@@ -292,11 +311,21 @@ pub fn build(b: *std.Build) void {
             .files = &sources.dft.simd.avx2,
             .flags = flags,
         });
+        mod.addCSourceFiles(.{
+            .root = upstream.path("rdft"),
+            .files = &sources.rdft.simd.avx2,
+            .flags = flags,
+        });
     }
     if (use_avx512) {
         mod.addCSourceFiles(.{
             .root = upstream.path("dft"),
             .files = &sources.dft.simd.avx512,
+            .flags = flags,
+        });
+        mod.addCSourceFiles(.{
+            .root = upstream.path("rdft"),
+            .files = &sources.rdft.simd.avx512,
             .flags = flags,
         });
     }
