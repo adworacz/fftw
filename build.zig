@@ -228,11 +228,18 @@ pub fn build(b: *std.Build) void {
         .root_module = mod,
     });
 
-    const dynlib = b.addLibrary(.{
-        .name = lib_name,
-        .linkage = .dynamic,
-        .root_module = mod,
-    });
+    // Disable building the dynamic library for now to prevent 
+    // ambiguity.
+    // See: https://github.com/ziglang/zig/issues/20377
+    // Potentially can be solved like curl, which exposes a 
+    // "artifact()" function:
+    // https://github.com/allyourcodebase/curl/blob/master/build.zig#L946-L959
+    //
+    // const dynlib = b.addLibrary(.{
+    //     .name = lib_name,
+    //     .linkage = .dynamic,
+    //     .root_module = mod,
+    // });
 
     lib.installHeader(upstream.path("api/fftw3.h"), ".");
 
@@ -314,5 +321,5 @@ pub fn build(b: *std.Build) void {
     }
 
     b.installArtifact(lib);
-    b.installArtifact(dynlib);
+    // b.installArtifact(dynlib);
 }
