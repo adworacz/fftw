@@ -269,6 +269,11 @@ pub fn build(b: *std.Build) void {
         .files = &sources.dft.generic,
         .flags = flags,
     });
+    mod.addCSourceFiles(.{
+        .root = upstream.path("rdft"),
+        .files = &sources.rdft.generic,
+        .flags = flags,
+    });
 
     //TODO: Finish all instruction sets
     // mod.addCSourceFiles(.{
