@@ -21,25 +21,29 @@ pub fn build(b: *std.Build) void {
     const target = b.standardTargetOptions(.{});
     const optimize = b.standardOptimizeOption(.{});
 
+    const is_windows = target.result.os.tag == .windows;
+    const is_x86 = target.result.cpu.arch == .x86_64;
+    const is_aarch64 = target.result.cpu.arch == .aarch64; 
+
     const strip = b.option(bool, "strip", "Enable debug symbol stripping (default true)") orelse true;
     const pic = b.option(bool, "pic", "Enable PIC (position independent code) (default true)") orelse true;
 
     const use_sse2 = b.option(bool, "enable-sse2", "Enable SSE2 optimizations (default CPU target)") orelse
-        std.Target.x86.featureSetHas(target.result.cpu.features, .sse2);
+        is_x86 and std.Target.x86.featureSetHas(target.result.cpu.features, .sse2);
     const use_avx = b.option(bool, "enable-avx", "Enable AVX optimizations (default CPU target)") orelse
-        std.Target.x86.featureSetHas(target.result.cpu.features, .avx);
+        is_x86 and std.Target.x86.featureSetHas(target.result.cpu.features, .avx);
     const use_avx2 = b.option(bool, "enable-avx2", "Enable AVX2 optimizations (default CPU target)") orelse
-        std.Target.x86.featureSetHas(target.result.cpu.features, .avx2);
+        is_x86 and std.Target.x86.featureSetHas(target.result.cpu.features, .avx2);
     const use_avx512 = b.option(bool, "enable-avx512", "Enable AVX512 optimizations (default CPU target)") orelse
-        std.Target.x86.featureSetHas(target.result.cpu.features, .avx512f);
+        is_x86 and std.Target.x86.featureSetHas(target.result.cpu.features, .avx512f);
     const use_neon = b.option(bool, "enable-neon", "Enable NEON optimizations (default CPU target)") orelse
-        std.Target.aarch64.featureSetHas(target.result.cpu.features, .neon);
+        is_aarch64 and std.Target.aarch64.featureSetHas(target.result.cpu.features, .neon);
     const use_sve = b.option(bool, "enable-sve", "Enable SVE optimizations (default CPU target)") orelse
-        std.Target.aarch64.featureSetHas(target.result.cpu.features, .sve);
+        is_aarch64 and std.Target.aarch64.featureSetHas(target.result.cpu.features, .sve);
+
     const precision = b.option(Precision, "precision", "Which precision to compile for (default single)") orelse .single;
     const use_threads = b.option(bool, "threads", "Enable FFTW SMP threads library (default false)") orelse false;
 
-    const is_windows = target.result.os.tag == .windows;
 
     const config = b.addConfigHeader(.{
         .include_path = "config.h",
@@ -111,7 +115,7 @@ pub fn build(b: *std.Build) void {
         .HAVE_UNISTD_H = 1,
         .HAVE_VPRINTF = 1,
 
-        // TODO: Base this on arch
+        // TODO: Base this on arch (use target.ctypebytsize)
         // Sizes
         .SIZEOF_DOUBLE = 8,
         .SIZEOF_FFTW_R2R_KIND = 4,
@@ -249,6 +253,7 @@ pub fn build(b: *std.Build) void {
     mod.addIncludePath(upstream.path("rdft"));
     mod.addIncludePath(upstream.path("reodft"));
     mod.addIncludePath(upstream.path("simd-support"));
+
     if (use_threads) {
         mod.addIncludePath(upstream.path("threads"));
     }
