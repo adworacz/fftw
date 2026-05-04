@@ -26,8 +26,8 @@ pub fn build(b: *std.Build) void {
     const is_x86 = target.result.cpu.arch == .x86_64;
     const is_aarch64 = target.result.cpu.arch == .aarch64;
 
-    const strip = b.option(bool, "strip", "Enable debug symbol stripping (default true if ReleaseFast else false)") orelse 
-        if(optimize == .ReleaseFast) true else false;
+    const strip = b.option(bool, "strip", "Enable debug symbol stripping (default true if ReleaseFast else false)") orelse
+        if (optimize == .ReleaseFast) true else false;
     const pic = b.option(bool, "pic", "Enable PIC (position independent code) (default true)") orelse true;
 
     const use_sse2 = b.option(bool, "enable-sse2", "Enable SSE2 optimizations (default CPU target)") orelse
@@ -75,8 +75,8 @@ pub fn build(b: *std.Build) void {
         .HAVE_DECL_COSL = true,
         .HAVE_DECL_COSQ = false,
         .HAVE_DECL_DRAND48 = true,
-        .HAVE_DECL_MEMALIGN = !is_windows,
-        .HAVE_DECL_POSIX_MEMALIGN = !is_windows,
+        .HAVE_DECL_MEMALIGN = if (!is_windows) true else null,
+        .HAVE_DECL_POSIX_MEMALIGN = if (!is_windows) true else null,
         .HAVE_DECL_SINL = true,
         .HAVE_DECL_SINQ = false,
         .HAVE_DECL_SRAND48 = true,
@@ -92,8 +92,8 @@ pub fn build(b: *std.Build) void {
         .HAVE_LIBM = true,
         .HAVE_LIMITS_H = true,
         .HAVE_LONG_DOUBLE = true,
-        .HAVE_MALLOC_H = if(!is_mac) true else null,
-        .HAVE_MEMALIGN = !is_windows,
+        .HAVE_MALLOC_H = if (!is_mac) true else null,
+        .HAVE_MEMALIGN = if (!is_windows) true else null,
         .HAVE_MEMMOVE = true,
         .HAVE_MEMSET = true,
         .HAVE_POSIX_MEMALIGN = true,
@@ -336,6 +336,18 @@ pub fn build(b: *std.Build) void {
         mod.addCSourceFiles(.{
             .root = upstream.path("rdft"),
             .files = &sources.rdft.simd.neon,
+            .flags = flags,
+        });
+    }
+    if (use_sve) {
+        mod.addCSourceFiles(.{
+            .root = upstream.path("dft"),
+            .files = &(sources.dft.simd.sve128 ++ sources.dft.simd.sve256 ++ sources.dft.simd.sve512 ++ sources.dft.simd.sve1024 ++ sources.dft.simd.sve2048),
+            .flags = flags,
+        });
+        mod.addCSourceFiles(.{
+            .root = upstream.path("rdft"),
+            .files = &(sources.rdft.simd.sve128 ++ sources.rdft.simd.sve256 ++ sources.rdft.simd.sve512 ++ sources.rdft.simd.sve1024 ++ sources.rdft.simd.sve2048),
             .flags = flags,
         });
     }

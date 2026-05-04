@@ -4234,7 +4234,7 @@
         "simd/sve128/hc2cfdftv_4.c",
         "simd/sve128/hc2cfdftv_6.c",
         "simd/sve128/hc2cfdftv_8.c",
-    }, .sve2024 = .{
+    }, .sve2048 = .{
         "simd/sve2048/codlist.c",
         "simd/sve2048/genus.c",
         "simd/sve2048/hc2cbdftv_10.c",
