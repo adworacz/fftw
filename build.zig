@@ -1,5 +1,5 @@
 const std = @import("std");
-const version = @import("build.zig.zon").version;
+const version = @import("build.zig.zon").dependencies.fftw.version;
 const sources = @import("sources.zon");
 
 // Extra flags set by FFTW upstream
@@ -14,15 +14,23 @@ pub fn build(b: *std.Build) void {
     const target = b.standardTargetOptions(.{});
     const optimize = b.standardOptimizeOption(.{});
 
-    //TODO: options
-    const is_windows = target.result.os.tag == .windows;
+    const strip = b.option(bool, "strip", "Enable debug symbol stripping (default true)") orelse true;
+    const pic = b.option(bool, "pic", "Enable PIC (position independent code) (default true)") orelse true;
 
-    const has_sse2 = std.Target.x86.featureSetHas(target.result.cpu.features, .sse2);
-    const has_avx = std.Target.x86.featureSetHas(target.result.cpu.features, .avx);
-    const has_avx2 = std.Target.x86.featureSetHas(target.result.cpu.features, .avx2);
-    const has_avx512 = std.Target.x86.featureSetHas(target.result.cpu.features, .avx512f);
-    const has_neon = std.Target.aarch64.featureSetHas(target.result.cpu.features, .neon);
-    const has_sve = std.Target.aarch64.featureSetHas(target.result.cpu.features, .sve);
+    const use_sse2 = b.option(bool, "enable-sse2", "Enable SSE2 optimizations (default CPU target)") orelse
+        std.Target.x86.featureSetHas(target.result.cpu.features, .sse2);
+    const use_avx = b.option(bool, "enable-avx", "Enable AVX optimizations (default CPU target)") orelse
+        std.Target.x86.featureSetHas(target.result.cpu.features, .avx);
+    const use_avx2 = b.option(bool, "enable-avx2", "Enable AVX2 optimizations (default CPU target)") orelse
+        std.Target.x86.featureSetHas(target.result.cpu.features, .avx2);
+    const use_avx512 = b.option(bool, "enable-avx512", "Enable AVX512 optimizations (default CPU target)") orelse
+        std.Target.x86.featureSetHas(target.result.cpu.features, .avx512f);
+    const use_neon = b.option(bool, "enable-neon", "Enable NEON optimizations (default CPU target)") orelse
+        std.Target.aarch64.featureSetHas(target.result.cpu.features, .neon);
+    const use_sve = b.option(bool, "enable-sve", "Enable SVE optimizations (default CPU target)") orelse
+        std.Target.aarch64.featureSetHas(target.result.cpu.features, .sve);
+
+    const is_windows = target.result.os.tag == .windows;
 
     const config = b.addConfigHeader(.{
         .include_path = "config.h",
@@ -142,10 +150,10 @@ pub fn build(b: *std.Build) void {
         .HAVE_ARMV8_CNTVCT_EL0 = null,
         .HAVE_ARMV8_PMCCNTR_EL0 = null,
 
-        .HAVE_SSE2 = if(has_sse2) true else null,
-        .HAVE_AVX = if(has_avx) true else null,
-        .HAVE_AVX2 = if(has_avx2) true else null,
-        .HAVE_AVX512 = if(has_avx512) true else null,
+        .HAVE_SSE2 = if(use_sse2) true else null,
+        .HAVE_AVX = if(use_avx) true else null,
+        .HAVE_AVX2 = if(use_avx2) true else null,
+        .HAVE_AVX512 = if(use_avx512) true else null,
         .HAVE_AVX_128_FMA = null,
         .HAVE_GENERIC_SIMD128 = null,
         .HAVE_GENERIC_SIMD256 = null,
@@ -153,8 +161,8 @@ pub fn build(b: *std.Build) void {
         .HAVE_LASX = null,
         .HAVE_LSX = null,
         .HAVE_MIPS_ZBUS_TIMER = null,
-        .HAVE_NEON = if(has_neon) true else null,
-        .HAVE_SVE = if(has_sve) true else null,
+        .HAVE_NEON = if(use_neon) true else null,
+        .HAVE_SVE = if(use_sve) true else null,
 
         .HAVE_BSDGETTIMEOFDAY = null,
         .HAVE_GETHRTIME = null,
@@ -192,6 +200,8 @@ pub fn build(b: *std.Build) void {
         .target = target,
         .optimize = optimize,
         .link_libc = true,
+        .strip = strip,
+        .pic = pic,
     });
 
     mod.addConfigHeader(config);
@@ -233,28 +243,28 @@ pub fn build(b: *std.Build) void {
     });
 
     //TODO: Finish all instruction sets
-    if (has_sse2) {
+    if (use_sse2) {
         mod.addCSourceFiles(.{
             .root = upstream.path("dft"),
             .files = &sources.dft.simd.sse2,
             .flags = flags,
         });
     }
-    if (has_avx) {
+    if (use_avx) {
         mod.addCSourceFiles(.{
             .root = upstream.path("dft"),
             .files = &sources.dft.simd.avx,
             .flags = flags,
         });
     }
-    if (has_avx2) {
+    if (use_avx2) {
         mod.addCSourceFiles(.{
             .root = upstream.path("dft"),
             .files = &sources.dft.simd.avx2,
             .flags = flags,
         });
     }
-    if (has_avx512) {
+    if (use_avx512) {
         mod.addCSourceFiles(.{
             .root = upstream.path("dft"),
             .files = &sources.dft.simd.avx512,
