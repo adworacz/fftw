@@ -279,16 +279,6 @@ pub fn build(b: *std.Build) void {
     });
 
     //TODO: Finish all instruction sets
-    // mod.addCSourceFiles(.{
-    //     .root = upstream.path("dft"),
-    //     .files = &sources.dft.simd.common,
-    //     .flags = flags,
-    // });
-    // mod.addCSourceFiles(.{
-    //     .root = upstream.path("dft"),
-    //     .files = &sources.rdft.simd.common,
-    //     .flags = flags,
-    // });
     if (use_sse2) {
         mod.addCSourceFiles(.{
             .root = upstream.path("dft"),
@@ -334,6 +324,18 @@ pub fn build(b: *std.Build) void {
         mod.addCSourceFiles(.{
             .root = upstream.path("rdft"),
             .files = &sources.rdft.simd.avx512,
+            .flags = flags,
+        });
+    }
+    if (use_neon) {
+        mod.addCSourceFiles(.{
+            .root = upstream.path("dft"),
+            .files = &sources.dft.simd.neon,
+            .flags = flags,
+        });
+        mod.addCSourceFiles(.{
+            .root = upstream.path("rdft"),
+            .files = &sources.rdft.simd.neon,
             .flags = flags,
         });
     }
