@@ -241,7 +241,7 @@ pub fn build(b: *std.Build) void {
     //     .root_module = mod,
     // });
 
-    lib.installHeader(upstream.path("api/fftw3.h"), ".");
+    lib.installHeader(upstream.path("api/fftw3.h"), "fftw3.h");
 
     mod.addIncludePath(upstream.path("api"));
     mod.addIncludePath(upstream.path("dft"));
