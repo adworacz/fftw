@@ -22,6 +22,7 @@ pub fn build(b: *std.Build) void {
     const optimize = b.standardOptimizeOption(.{});
 
     const is_windows = target.result.os.tag == .windows;
+    const is_mac = target.result.os.tag == .macos;
     const is_x86 = target.result.cpu.arch == .x86_64;
     const is_aarch64 = target.result.cpu.arch == .aarch64;
 
@@ -91,7 +92,7 @@ pub fn build(b: *std.Build) void {
         .HAVE_LIBM = true,
         .HAVE_LIMITS_H = true,
         .HAVE_LONG_DOUBLE = true,
-        .HAVE_MALLOC_H = true,
+        .HAVE_MALLOC_H = if(!is_mac) true else null,
         .HAVE_MEMALIGN = !is_windows,
         .HAVE_MEMMOVE = true,
         .HAVE_MEMSET = true,
