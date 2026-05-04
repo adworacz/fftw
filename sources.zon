@@ -498,7 +498,7 @@
                 "simd/avx-128-fma/t3fv_5.c",
                 "simd/avx-128-fma/t3fv_8.c",
             },
-            .avx_128 = .{
+            .avx2 = .{
                 "simd/avx2-128/codlist.c",
                 "simd/avx2-128/genus.c",
                 "simd/avx2-128/n1bv_10.c",
@@ -671,8 +671,6 @@
                 "simd/avx2-128/t3fv_4.c",
                 "simd/avx2-128/t3fv_5.c",
                 "simd/avx2-128/t3fv_8.c",
-            },
-            .avx2 = .{
                 "simd/avx2/codlist.c",
                 "simd/avx2/genus.c",
                 "simd/avx2/n1bv_10.c",
