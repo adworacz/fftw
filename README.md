@@ -7,7 +7,7 @@ Supports cross compilation
 Add fftw to your project with:
 
 ```
-zig fetch --save https://github.com/adworacz/fftw/archive/refs/tags/v3.3.11-1.tar.gz
+zig fetch --save https://github.com/adworacz/fftw/archive/refs/tags/v3.3.11-2.tar.gz
 ```
 
 Then in your `build.zig`, add the following:
