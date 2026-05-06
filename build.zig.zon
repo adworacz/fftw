@@ -1,6 +1,6 @@
 .{
     .name = .fftw,
-    .version = "3.3.11-1",
+    .version = "3.3.11-2",
     .dependencies = .{
         .fftw = .{
             .url = "https://www.fftw.org/fftw-3.3.11.tar.gz",
