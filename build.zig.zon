@@ -13,8 +13,9 @@
         "build.zig",
         "build.zig.zon",
         "sources.zon",
-        "README",
+        "README.md",
         "LICENSE",
+        "LICENSE-FFTW",
     },
     .fingerprint = 0xf661983c23753512,
 }

@@ -49,3 +49,10 @@ c.fftwf_plan_r2r_2d(...)
 2. Only the static libary/artifact is currently built due to a [known bug](https://github.com/ziglang/zig/issues/20377)
    in Zig. There is a potential workaround noted in this package's `build.zig.zon`, based on an idea from the `curl`
    package. Please open a PR if you decide to implement it.
+
+## Licensing
+Note that the MIT license used in this repo pertains solely to the build.zig, build.zig.zon, and sources.zon artifacts.
+
+It does *not* mean that FFTW has been relicensed to MIT.
+
+A copy of the FFTW license (GPL) has been included for convenience.
